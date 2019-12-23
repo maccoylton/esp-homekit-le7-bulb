@@ -1,0 +1,4 @@
+esp-homekit-le7-bulb.xcodeproj/
+build/
+firmware/
+.DS_Store
