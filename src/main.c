@@ -44,9 +44,10 @@
 #define LPF_INTERVAL 10  // in milliseconds
 
 #define WHITE_PWM_PIN 15
-#define BLUE_PWM_PIN 15
-#define RED_PWM_PIN 12
+#define BLUE_PWM_PIN 12
+#define RED_PWM_PIN 15
 #define GREEN_PWM_PIN 5
+#define PWM_SCALE 255
 #define LED_RGB_SCALE 255       // this is the scaling factor used for color conversion
 #define LED_STRIP_SET_DELAY 500
 
@@ -71,6 +72,8 @@ ETSTimer led_strip_timer;
 homekit_characteristic_t wifi_reset   = HOMEKIT_CHARACTERISTIC_(CUSTOM_WIFI_RESET, false, .setter=wifi_reset_set);
 homekit_characteristic_t wifi_check_interval   = HOMEKIT_CHARACTERISTIC_(CUSTOM_WIFI_CHECK_INTERVAL, 10, .setter=wifi_check_interval_set);
 /* checks the wifi is connected and flashes status led to indicated connected */
+homekit_characteristic_t task_stats   = HOMEKIT_CHARACTERISTIC_(CUSTOM_TASK_STATS, false , .setter=task_stats_set);
+
 homekit_characteristic_t ota_trigger  = API_OTA_TRIGGER;
 homekit_characteristic_t name         = HOMEKIT_CHARACTERISTIC_(NAME, DEVICE_NAME);
 homekit_characteristic_t manufacturer = HOMEKIT_CHARACTERISTIC_(MANUFACTURER,  DEVICE_MANUFACTURER);
@@ -86,16 +89,6 @@ homekit_characteristic_t led_boost    = HOMEKIT_CHARACTERISTIC_( CUSTOM_LED_BOOS
 const int status_led_gpio = 13; /*set the gloabl variable for the led to be sued for showing status */
 int led_off_value=1; /* global varibale to support LEDs set to 0 where the LED is connected to GND, 1 where +3.3v */
 
-
-typedef union {
-    struct {
-        uint16_t white;
-        uint16_t blue;
-        uint16_t green;
-        uint16_t red;
-    };
-    uint64_t color;
-} rgb_color_t;
 
 // Color smoothing variables
 rgb_color_t current_color = { { 0, 0, 0, 0 } };
@@ -143,7 +136,7 @@ void led_strip_set (){
         // convert HSI to RGBW
         HSVtoRGB(led_hue, led_saturation, led_brightness, &target_color);
         printf("%s: h=%d,s=%d,b=%d => r=%d,g=%d, b=%d\n",__func__, (int)led_hue,(int)led_saturation,(int)led_brightness, target_color.red,target_color.green, target_color.blue );
-        RGBtoRGBW(&target_color);
+        RBGtoRBGW(&target_color);
         printf("%s: h=%d,s=%d,b=%d => r=%d,g=%d, b=%d, w=%d\n",__func__, (int)led_hue,(int)led_saturation,(int)led_brightness, target_color.red,target_color.green, target_color.blue, target_color.white);
     } else {
         // printf("led srtip off\n");
@@ -155,7 +148,7 @@ void led_strip_set (){
     
     
     current_color.red = target_color.red * PWM_SCALE;
-    current_color.green target_color.green * PWM_SCALE;
+    current_color.green = target_color.green * PWM_SCALE;
     current_color.blue = target_color.blue * PWM_SCALE;
     current_color.white = target_color.white * PWM_SCALE;
     
@@ -200,6 +193,9 @@ void led_on_set(homekit_value_t value) {
     }
     
     led_on = value.bool_value;
+    sdk_os_timer_arm (&led_strip_timer, LED_STRIP_SET_DELAY, 0 );
+    printf("%s Led On set, timer called, value:%d\n", __func__, led_on);
+
 }
 
 homekit_value_t led_brightness_get() {
@@ -287,6 +283,7 @@ homekit_accessory_t *accessories[] = {
             &ota_trigger,
             &wifi_reset,
             &wifi_check_interval,
+            &task_stats,
             NULL
         }),
         NULL
