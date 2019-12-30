@@ -1,4 +1,5 @@
 esp-homekit-le7-bulb.xcodeproj/
 build/
 firmware/
+src/udplog-client
 .DS_Store
