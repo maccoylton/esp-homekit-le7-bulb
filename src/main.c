@@ -43,9 +43,9 @@
 #define LPF_SHIFT 4  // divide by 16
 #define LPF_INTERVAL 10  // in milliseconds
 
-#define WHITE_PWM_PIN 15
-#define BLUE_PWM_PIN 14
-#define RED_PWM_PIN 12
+#define WHITE_PWM_PIN 14
+#define BLUE_PWM_PIN 12
+#define RED_PWM_PIN 15
 #define GREEN_PWM_PIN 5
 #define PWM_SCALE 255
 #define LED_RGB_SCALE 255       // this is the scaling factor used for color conversion
@@ -175,6 +175,8 @@ void recover_from_reset (int reason){
 
 void accessory_init_not_paired (void) {
     /* initalise anything you don't want started until wifi and homekit imitialisation is confirmed, but not paired */
+    printf ("%s:\n", __func__);
+    save_characteristic_to_flash(&switch_on, switch_on.value);
 }
 
 void accessory_init (void ){
