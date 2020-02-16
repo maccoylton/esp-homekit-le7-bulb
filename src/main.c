@@ -68,6 +68,9 @@ void on_update(homekit_characteristic_t *ch, homekit_value_t value, void *contex
 
 
 homekit_characteristic_t wifi_reset   = HOMEKIT_CHARACTERISTIC_(CUSTOM_WIFI_RESET, false, .setter=wifi_reset_set);
+homekit_characteristic_t ota_beta     = HOMEKIT_CHARACTERISTIC_(CUSTOM_OTA_BETA, false, .setter=ota_beta_set);
+homekit_characteristic_t user_beta    = HOMEKIT_CHARACTERISTIC_(CUSTOM_USER_BETA, false, .setter=user_beta_set);
+
 homekit_characteristic_t wifi_check_interval   = HOMEKIT_CHARACTERISTIC_(CUSTOM_WIFI_CHECK_INTERVAL, 10, .setter=wifi_check_interval_set);
 /* checks the wifi is connected and flashes status led to indicated connected */
 homekit_characteristic_t task_stats   = HOMEKIT_CHARACTERISTIC_(CUSTOM_TASK_STATS, false , .setter=task_stats_set);
@@ -78,10 +81,15 @@ homekit_characteristic_t manufacturer = HOMEKIT_CHARACTERISTIC_(MANUFACTURER,  D
 homekit_characteristic_t serial       = HOMEKIT_CHARACTERISTIC_(SERIAL_NUMBER, DEVICE_SERIAL);
 homekit_characteristic_t model        = HOMEKIT_CHARACTERISTIC_(MODEL,         DEVICE_MODEL);
 homekit_characteristic_t revision     = HOMEKIT_CHARACTERISTIC_(FIRMWARE_REVISION,  FW_VERSION);
+
 homekit_characteristic_t red_gpio     = HOMEKIT_CHARACTERISTIC_( CUSTOM_RED_GPIO, RED_PWM_PIN, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(on_update) );
 homekit_characteristic_t green_gpio   = HOMEKIT_CHARACTERISTIC_( CUSTOM_GREEN_GPIO, GREEN_PWM_PIN, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(on_update) );
 homekit_characteristic_t blue_gpio    = HOMEKIT_CHARACTERISTIC_( CUSTOM_BLUE_GPIO, BLUE_PWM_PIN, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(on_update) );
 homekit_characteristic_t white_gpio   = HOMEKIT_CHARACTERISTIC_( CUSTOM_WHITE_GPIO, WHITE_PWM_PIN, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(on_update) );
+homekit_characteristic_t colours_gpio_test   = HOMEKIT_CHARACTERISTIC_(CUSTOM_COLOURS_GPIO_TEST, false , .setter=colours_gpio_test_set, .getter=colours_gpio_test_get);
+homekit_characteristic_t pure_white   = HOMEKIT_CHARACTERISTIC_(CUSTOM_COLOURS_PURE_WHITE, false , .setter=colours_pure_white_set);
+
+
 homekit_characteristic_t on = HOMEKIT_CHARACTERISTIC_(ON, true,
                                                       .getter = led_on_get,
                                                       .setter = led_on_set);
@@ -97,6 +105,13 @@ homekit_characteristic_t hue = HOMEKIT_CHARACTERISTIC_(HUE, 0,
 homekit_characteristic_t saturation = HOMEKIT_CHARACTERISTIC_(SATURATION, 0,
                                                               .getter = led_saturation_get,
                                                               .setter = led_saturation_set);
+
+
+homekit_characteristic_t colours_strobe = HOMEKIT_CHARACTERISTIC_(CUSTOM_COLOURS_STROBE, false , .setter=colours_strobe_set, .getter=colours_strobe_get);
+homekit_characteristic_t colours_flash = HOMEKIT_CHARACTERISTIC_(CUSTOM_COLOURS_FLASH, false , .setter=colours_flash_set, .getter=colours_flash_get);
+homekit_characteristic_t colours_fade = HOMEKIT_CHARACTERISTIC_(CUSTOM_COLOURS_FADE, false , .setter=colours_fade_set, .getter=colours_smooth_get);
+homekit_characteristic_t colours_smooth = HOMEKIT_CHARACTERISTIC_(CUSTOM_COLOURS_SMOOTH, false ,.setter=colours_smooth_set, .getter=colours_smooth_get);
+
 
 const int status_led_gpio = 2; /*set the gloabl variable for the led to be sued for showing status */
 int led_off_value=1; /* global varibale to support LEDs set to 0 where the LED is connected to GND, 1 where +3.3v */
@@ -118,7 +133,7 @@ bool led_on = false;            // on is boolean on or off
 
 
 
-void led_strip_init (){
+void le7_buld_init (){
     
     pwm_info.channels = 4;
     rgbw_lights_init();
@@ -150,8 +165,16 @@ homekit_accessory_t *accessories[] = {
             &white_gpio,
             &ota_trigger,
             &wifi_reset,
+            &ota_beta,
+            &user_beta,
             &wifi_check_interval,
             &task_stats,
+            &colours_gpio_test,
+            &colours_strobe,
+            &colours_flash,
+            &colours_fade,
+            &colours_smooth,
+            &pure_white,
             NULL
         }),
         NULL
@@ -176,13 +199,19 @@ void recover_from_reset (int reason){
 void accessory_init_not_paired (void) {
     /* initalise anything you don't want started until wifi and homekit imitialisation is confirmed, but not paired */
     printf ("%s:\n", __func__);
-    save_characteristic_to_flash(&switch_on, switch_on.value);
 }
 
 void accessory_init (void ){
     /* initalise anything you don't want started until wifi and pairing is confirmed */
     get_sysparam_info();
     printf ("%s: GPIOS are set as follows : W=%d, R=%d, G=%d, B=%d\n",__func__, white_gpio.value.int_value,red_gpio.value.int_value, green_gpio.value.int_value, blue_gpio.value.int_value );
+
+    /* sent out values loded from flash, if nothing was loaded from flash then this will be default values */
+    homekit_characteristic_notify(&hue,hue.value);
+    homekit_characteristic_notify(&saturation,saturation.value );
+    homekit_characteristic_notify(&brightness,brightness.value );
+    homekit_characteristic_notify(&pure_white,pure_white.value );
+
 }
 
 
@@ -190,12 +219,10 @@ void user_init(void) {
     
     standard_init (&name, &manufacturer, &model, &serial, &revision);
     
-    led_strip_init ();
+    le7_buld_init ();
     
     /*    xTaskCreate(led_strip_send_task, "led_strip_send_task", 256, NULL, 2, NULL);*/
     
     
     wifi_config_init(DEVICE_NAME, NULL, on_wifi_ready);
-    
-    
 }
