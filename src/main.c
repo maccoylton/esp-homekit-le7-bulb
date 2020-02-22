@@ -69,7 +69,7 @@ void on_update(homekit_characteristic_t *ch, homekit_value_t value, void *contex
 
 homekit_characteristic_t wifi_reset   = HOMEKIT_CHARACTERISTIC_(CUSTOM_WIFI_RESET, false, .setter=wifi_reset_set);
 homekit_characteristic_t ota_beta     = HOMEKIT_CHARACTERISTIC_(CUSTOM_OTA_BETA, false, .setter=ota_beta_set);
-homekit_characteristic_t user_beta    = HOMEKIT_CHARACTERISTIC_(CUSTOM_USER_BETA, false, .setter=user_beta_set);
+homekit_characteristic_t lcm_beta    = HOMEKIT_CHARACTERISTIC_(CUSTOM_LCM_BETA, false, .setter=lcm_beta_set);
 
 homekit_characteristic_t wifi_check_interval   = HOMEKIT_CHARACTERISTIC_(CUSTOM_WIFI_CHECK_INTERVAL, 10, .setter=wifi_check_interval_set);
 /* checks the wifi is connected and flashes status led to indicated connected */
@@ -166,7 +166,7 @@ homekit_accessory_t *accessories[] = {
             &ota_trigger,
             &wifi_reset,
             &ota_beta,
-            &user_beta,
+            &lcm_beta,
             &wifi_check_interval,
             &task_stats,
             &colours_gpio_test,
