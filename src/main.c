@@ -204,7 +204,10 @@ void accessory_init_not_paired (void) {
 void accessory_init (void ){
     /* initalise anything you don't want started until wifi and pairing is confirmed */
     get_sysparam_info();
+
     printf ("%s: GPIOS are set as follows : W=%d, R=%d, G=%d, B=%d\n",__func__, white_gpio.value.int_value,red_gpio.value.int_value, green_gpio.value.int_value, blue_gpio.value.int_value );
+
+    le7_buld_init ();
 
     /* sent out values loded from flash, if nothing was loaded from flash then this will be default values */
     homekit_characteristic_notify(&hue,hue.value);
@@ -218,8 +221,6 @@ void accessory_init (void ){
 void user_init(void) {
     
     standard_init (&name, &manufacturer, &model, &serial, &revision);
-    
-    le7_buld_init ();
     
     /*    xTaskCreate(led_strip_send_task, "led_strip_send_task", 256, NULL, 2, NULL);*/
     
