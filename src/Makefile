@@ -11,7 +11,6 @@ $(abspath ../components/esp-cjson) \
 $(abspath ../components/esp-homekit) \
 $(abspath ../components/esp-wifi-config)\
 $(abspath ../components/UDPlogger)\
-$(abspath ../components/esp-adv-button)\
 $(abspath ../components/esp-homekit-common-functions/led_codes)\
 $(abspath ../components/esp-homekit-common-functions/ota)\
 $(abspath ../components/esp-homekit-common-functions/custom_characteristics)\
@@ -34,6 +33,7 @@ EXTRA_CFLAGS += -DHOMEKIT_OVERCLOCK_PAIR_VERIFY
 EXTRA_CFLAGS += -DHOMEKIT_OVERCLOCK_PAIR_SETUP
 EXTRA_CFLAGS += -DUDPLOG_PRINTF_TO_UDP
 EXTRA_CFLAGS += -DUDPLOG_PRINTF_ALSO_SERIAL
+EXTRA_CFLAGS += -DconfigUSE_TRACE_FACILITY
 
 
 LIBS ?= m
